@@ -1,6 +1,11 @@
 # include "motors.h"
 
-// Initialize the motors the the lowest and highest speed values
+/*
+ * Function motors_init
+ * Desc 	Init the timer0 and timer1,
+ * 			in order to control the four 
+ * 			motors.
+ */
 void motors_init(void) {
 	// Set the motors' pin as outputs
 	DDRD |= (1 << MOTORS_PIN_FR) | (1 << MOTORS_PIN_BR) | (1 << MOTORS_PIN_BL);
@@ -26,7 +31,12 @@ void motors_init(void) {
 	MOTORS_TIMER_FL = MOTORS_LOWEST_SPEED;
 }
 
-// Calibrate the ESC: the now know the MOTORS_LOWEST_SPEED and MOTORS_HIGHEST_SPEED
+/*
+ * Function motors_calibrate
+ * Desc 	This function calibrate the ESCs: it
+ * 			set them, giving them the MOTORS_LOWEST_SPEED
+ * 			and MOTORS_HIGHEST_SPEED
+ */
 void motors_calibrate(void) {
 	// The function takes 500ms to go from MOTORS_HIGHEST_SPEED to
 	// MOTORS_LOWEST_SPEED.
@@ -54,8 +64,13 @@ void motors_calibrate(void) {
 	}
 }
 
-// Change the speed of one motor (given as a param) to the speed (also given) in
-// percent. Thus, speed must be in [0; 100], else, the function does nothing.
+/* 
+ * Function motors_setSpeed
+ * Desc 	This function set the speed of one motor.
+ * Input 	motor: the macro MOTORS_XX representing
+ * 			the motor
+ * 			speed: the speed in percents
+ */
 void motors_setSpeed(uint8_t motor, uint8_t speedPercent) {
 	// If the speed, or the motor, is not good, stop right now
 	if (speedPercent > 100 || speedPercent < 0 || motor < 1 || motor > 4) {
@@ -90,11 +105,19 @@ void motors_setSpeed(uint8_t motor, uint8_t speedPercent) {
 	}
 }
 
-// Return the speed, in percents, of the motor given. If the value is above 100,
-// then the value of OCRnx is above MOTORS_MAX_SPEED, and if it's 201, then
-// this value is out of the range[MOTORS_LOWEST_SPEED; MOTORS_LOWEST_SPEED]. If
-// the returned value is 202, then the motor given doesn't match to any existing
-// motor.
+/*
+ * Function motors_getSpeed
+ * Desc 	Returns the speed, in percent, of the
+ * 			given motor
+ * Input 	motor: the macro MOTORS_XX
+ * Output 	If the speed is in [0; 100]: the speed
+ * 			If the speed is above MOTORS_MAX_SPEED:
+ * 			above 100
+ * 			If the value is out of [highest; lowest]
+ * 			range: 201
+ * 			If the id of the motors doesn't match any
+ * 			existing motor, 202
+ */
 uint8_t motors_getSpeed(uint8_t motor) {
 	uint8_t ocrSpeed;
 	switch (motor) {
@@ -129,12 +152,20 @@ uint8_t motors_getSpeed(uint8_t motor) {
 	}
 }
 
-// Stop one motor given in parameter
+/*
+ * Function motors_stop
+ * Desc 	Stop a given motor
+ * Input 	motor: the id of the motor
+ */
 void motors_stop(uint8_t motor) {
 	motors_setSpeed(motor, 0);
 }
 
-// Stop all the motors of the drone
+/*
+ * Function motors_stopAll
+ * Desc 	Stop all the motors of the 
+ * 			quadcopter
+ */
 void motors_stopAll(void) {
 	motors_stop(MOTORS_FR);
 	motors_stop(MOTORS_BR);

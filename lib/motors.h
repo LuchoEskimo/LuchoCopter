@@ -5,7 +5,6 @@
 # include <inttypes.h>
 # include <util/delay.h>
 
-
 // The number of motors
 # define MOTORS_NUMBER 4
 

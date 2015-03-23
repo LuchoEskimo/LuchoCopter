@@ -47,6 +47,6 @@ WIP directory. The project is divided in several source files:
   inertial informations about the quadcopter
 - `imu.c` (not implemented): provides all the functions needed to obtain
   workable (ie. filtered and analysed) inertial informations
-- `pid.c`: this library is in charge of the enslavement of the attitude of the
+- `pid.c` (not implemented): this library is in charge of the enslavement of the attitude of the
   quadcopter
 - `com.c` (not impemented): help us to communicate with the remote

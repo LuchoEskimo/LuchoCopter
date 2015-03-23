@@ -28,6 +28,7 @@
 // Used in usart_read, in order to not to stock the error
 # define USART_NO_ERROR (int8_t*)0
 
+
 // Error codes
 # define USART_NO_WAITING_DATA 1
 # define USART_FRAME_ERROR -1

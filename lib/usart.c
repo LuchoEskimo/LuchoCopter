@@ -1,6 +1,18 @@
 # include "usart.h"
 
 // Function used to set the serial port
+/*
+ * Function usart_init
+ * Desc 	Set the serial port
+ * Input 	baudRate: the baudRate, the speed
+ * 			of the transmission in bauds
+ * 			direction: either USART_DIR_[TX|RX],
+ * 			or USART_DIR_TX | USART_DIR_RX
+ * 			parity: USART_PARITY_[NO|EVEN|ODD]
+ * 			stopBits: USART_STOP_BITS_[1|2]
+ * 			dataBits: The number of bits par 
+ * 			transmitted packet, USART_DATA_[5...8]
+ */
 void usart_init(uint32_t baudRate, uint8_t direction, uint8_t parity, uint8_t stopBits, uint8_t dataBits) {
 	// Asynchronuous mode
 	UCSR0C &= ~( (1 << UMSEL01) | (1 << UMSEL00) | (1 << UCPOL0) );
@@ -57,7 +69,13 @@ void usart_init(uint32_t baudRate, uint8_t direction, uint8_t parity, uint8_t st
 	UBRR0L = (uint8_t) ubrr;
 }
 
-// Sends a single ascii character, 8bits. It's a blocking task
+/*
+ * Function usart_send
+ * Desc 	Send a single ascii character, but
+ * 			be cautious: it's a blocking function
+ * Input 	character: an 8bits ascii character
+ * 			to send
+ */
 void usart_send(uint8_t character) {
 	// Wait for the data register to be empty
 	while ( !(UCSR0A & (1 << UDRE0)) );
@@ -66,18 +84,34 @@ void usart_send(uint8_t character) {
 	UDR0 = character;
 }
 
-// Sends an array of char. Uses usart_send, so is also a blocking task
+/*
+ * Function usart_sendString
+ * Desc 	Send an array of ascii character (a string).
+ * 			It's based on usart_send, so it's also
+ * 			a blocking function
+ * Input 	str: a C-style (ended with '\0') array
+ * 			of char, encodedd in ascii.
+ */
 void usart_sendString(char str[]) {
 	do {
 		usart_send(*str);
 	} while( *str ++ != '\0');
 }
 
-// Check for data in the receive buffer, if not returns 0 and set error to USART_NO_WAITING_DATA. If
-// an error occurred, set error to USART_FRAME_ERROR if it's a Frame error (error in the stop
-// bits), USART_PARITY_ERROR for a parity error, and USART_DATA_OVERRUN if there is a data overrun. Then, it
-// returns 0. If there isn't any error, return the next character of the receive
-// buffer and set error to USART_OK. If error is set to USART_NO_ERROR, doesn't 
+/*
+ * Function usart_read
+ * Desc 	Check for ready to be read character
+ * 			in the receive buffer: if so, returns
+ * 			them
+ * Input 	error: a pointer, used to hold the
+ * 			error status of the function.
+ * 			-no waiting data: USART_NO_WAITING_DATA
+ * 			-error in the stop bits: USART_FRAME_ERROR
+ * 			-error the parity bit: USART_PARITY_ERROR
+ * 			-to much data in the buffer: USART_DATA_OVERRUN
+ * 			-USART_OK else
+ * Output 	The read character
+ */
 uint8_t usart_read(int8_t* error) {
 	if ( !(UCSR0A & (1 << RXC0)) ) {
 		usart_handleError(error, USART_NO_WAITING_DATA);
@@ -107,13 +141,23 @@ uint8_t usart_read(int8_t* error) {
 	}
 }
 
-// Returns 1 if there is waiting data in UDR0
+/*
+ * Function usart_dataAvailable
+ * Desc 	Inform if there is either data available
+ * 			or not
+ * Return 	1 if the receive buffer isn't empty, 0 else
+ */
 uint8_t usart_dataAvailable(void) {
 	return (UCSR0A & (1 << RXC0)) >> RXC0;
 }
 
-// Enable the Reception Complete Interrupt, emitted when there is a new byte in
-// the UDR buffer. The UART0_RX_vect interrupt routine must be implemented
+/* 
+ * Function usart_enableInterrupt
+ * Desc 	Enables the Reception Complete Interrupt:
+ * 			it's triggered when there is a new byte
+ * 			in the receive buffer. Be cautious, the
+ * 			UART0_RX_vect ISR must be implemented.
+ */
 void usart_enableInterrupt(void) {
 	sei();
 	UCSR0B |= 1 << RXCIE0;

@@ -1,7 +1,14 @@
 # include "eon.h"
 
-volatile uint32_t eon_milliseconds;
+// The number of milliseconds from startup
+static volatile uint32_t eon_milliseconds;
 
+/*
+ * Function eon_init
+ * Desc 	Initialize the eon library,
+ * 			allowing then the user to
+ * 			get information about the time.
+ */
 void eon_init() {
 	// Clear eon_milliseconds
 	eon_milliseconds = 0;
@@ -39,6 +46,13 @@ void eon_init() {
 	sei();
 }
 
+/*
+ * Function eon_init
+ * Desc 	Return the number of milliseconds
+ * 			since init of eon library.
+ * Output 	The number of ms, an unsigned,
+ * 			32bits number.
+ */
 uint32_t eon_millis(void) {
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 		return (uint32_t)eon_milliseconds;

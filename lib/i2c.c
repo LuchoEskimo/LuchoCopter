@@ -1,7 +1,5 @@
 # include "i2c.h"
 
-
-
 /*
  * Function i2c_masterInit
  * Desc 	initialize the TWI clock, in order to have
@@ -145,7 +143,7 @@ uint8_t i2c_writeBytes(uint8_t address, uint8_t* reg, uint8_t* bytes, uint8_t le
 	if(i2c_start(I2C_WRITE | address << 1) == I2C_ERROR)
 		return 0;
 
-	// Loop in the bytes array, to send all the byte
+	// Loop in the bytes array, to send all the bytes
 	uint8_t i = 0;
 	uint8_t sent = 0;
 
@@ -161,7 +159,7 @@ uint8_t i2c_writeBytes(uint8_t address, uint8_t* reg, uint8_t* bytes, uint8_t le
 			return sent;
 
 		// load the data in the data reg
-		if (i2c_writeData( *(bytes + i)))
+		if( i2c_writeData( *(bytes + i)) == I2C_ERROR )
 			return sent;
 		
 		++i;
@@ -256,7 +254,7 @@ uint8_t i2c_readBytes(uint8_t address, uint8_t* reg, uint8_t* out, uint8_t lengt
 		}
 		
 		// Write the register to read
-		if(i2c_writeData(*reg + i) == I2C_ERROR)
+		if(i2c_writeData( *(reg + i) ) == I2C_ERROR)
 			return read;
 
 		// New transmissio, MR
@@ -307,7 +305,7 @@ uint8_t i2c_burstWrite(uint8_t address, uint8_t start_reg, uint8_t* values, uint
 	uint8_t sent = 0;
 
 	while( i < length) {
-		i2c_writeData(*(values) + i);
+		i2c_writeData(*(values + i));
 		
 		++i;
 		++sent;

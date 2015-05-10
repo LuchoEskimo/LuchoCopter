@@ -8,7 +8,7 @@
 // Used to compute the TWBR value: set I2C_FREQUENCY to the desired frequency of
 // the SCL line, in Hertz, and the I2C_PRESCALER to the prescaler applied to
 // F_CPU, the preprocessor will find the good TWBR value
-# define I2C_FREQUENCY 50000UL
+# define I2C_FREQUENCY 400000UL
 # define I2C_PRESCALER 2
 # define I2C_TWBR ((((F_CPU / I2C_FREQUENCY) / I2C_PRESCALER) - 16 ) / 2)
 

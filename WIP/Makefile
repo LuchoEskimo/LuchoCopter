@@ -1,5 +1,5 @@
 NAME = main
-LIB = ../lib/* i2c.c
+LIB = ../lib/*
 #LIB = motors.c usart.c eon.c i2c.c
 PROGRAMMER = usbasp-clone
 #PROGRAMMER = arduino

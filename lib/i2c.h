@@ -20,10 +20,11 @@
 # define I2C_READ 0x01
 
 void i2c_masterInit(void);
-uint8_t i2c_start(uint8_t address);
-uint8_t i2c_repeatedStart(uint8_t address);
-uint8_t i2c_writeData(uint8_t data);
-void i2c_stop(void);
+
+static uint8_t i2c_start(uint8_t address);
+static uint8_t i2c_repeatedStart(uint8_t address);
+static uint8_t i2c_writeData(uint8_t data);
+static void i2c_stop(void);
 
 uint8_t i2c_writeByte(uint8_t address, uint8_t reg, uint8_t byte);
 uint8_t i2c_writeBytes(uint8_t address, uint8_t* reg, uint8_t* bytes, uint8_t number);

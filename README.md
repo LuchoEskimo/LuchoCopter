@@ -41,9 +41,9 @@ WIP directory. The project is divided in several source files:
 - `motors.c`: this file allows us to drive motors through ESCs, using the timers
   0 and 2
 - `usart.c`: it provides functions to use the USART module of the Atmega328p
-- `i2c.c` (WIP): with its functions, we can use the TWI module of the Atmega328p
+- `i2c.c`: with its functions, we can use the TWI module of the Atmega328p
   as a Master
-- `mpu9150.c` (not implemented): library which provide the functions to get
+- `mpu9150.c` (WIP): library which provide the functions to get
   inertial informations about the quadcopter
 - `imu.c` (not implemented): provides all the functions needed to obtain
   workable (ie. filtered and analysed) inertial informations

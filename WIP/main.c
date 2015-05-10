@@ -7,16 +7,16 @@
 # include "../lib/motors.h"
 # include "../lib/i2c.h"
 
+# include "mpu9150.h"
+
 # define mpu 0x68
 
 void init(void);
-void mpu9150_init(void);
+//void mpu9150_init(void);
 
 int main(void) {
     init();
     mpu9150_init();
-    DDRD |= 1 << PD5;
-    _delay_ms(100);
 
     char ret[90];
 
@@ -35,8 +35,8 @@ int main(void) {
     int16_t ax, ay, az;
 
     for(;;) {
-        /*
-        i2c_burstRead(mpu, 0x43, out, 6);
+        ///*
+        i2c_burstRead(mpu, 0x3B, out, 6);
 
         ax = (int16_t)(out[0] << 8 | out[1]);
         ay = (int16_t)(out[2] << 8 | out[3]);

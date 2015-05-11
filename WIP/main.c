@@ -16,33 +16,21 @@ void init(void);
 
 int main(void) {
     init();
-    mpu9150_init();
+    mpu9150_init(MPU9150_gyro_250, MPU9150_accel_2g);
 
     char ret[90];
-
-    uint16_t temps;
-    uint8_t buffer[100];
-    for( uint8_t i = 0; i < 100; ++i ){ buffer[i] = 0; }
-    uint8_t reg[100];
-    for( uint8_t i = 0; i < 100; ++i ){ reg[i] = i + 0x23;}
-    uint16_t debut = eon_millis();
-    i2c_burstWrite(mpu, reg[0], buffer, 18);
-    temps = eon_millis() - debut;
-    sprintf(ret, "%d\n", temps);
-    usart_sendString(ret);
-
-    uint8_t out[6];
-    int16_t ax, ay, az;
+    float ax;
+    int16_t fax;
+    uint16_t debut, temps;
 
     for(;;) {
         ///*
-        i2c_burstRead(mpu, 0x3B, out, 6);
+        debut = eon_millis();
+        ax = mpu9150_getAccelX();
+        temps = eon_millis() - debut;
+        fax = (int16_t)(ax * 1000.0f);
 
-        ax = (int16_t)(out[0] << 8 | out[1]);
-        ay = (int16_t)(out[2] << 8 | out[3]);
-        az = (int16_t)(out[4] << 8 | out[5]);
-
-        sprintf(ret, "X: %d\tY: %d\tZ: %d\n", ax, ay, az);
+        sprintf(ret, "X: %d\t(%d)\n", fax, temps);
         usart_sendString(ret);
         _delay_ms(1000);
         //*/
@@ -69,6 +57,7 @@ void init() {
     _delay_ms(50);
 }
 
+/*
 void mpu9150_init(void) {
     uint8_t reg[]   = {0x6B, 0x37, 0x6A, 0x1B, 0x1C, 0x19};
     uint8_t bytes[] = {0x01, 0X00, 0x00, 0x00, 0x00, 0X00};
@@ -78,4 +67,4 @@ void mpu9150_init(void) {
     if( resultat != 6 ) {
         usart_sendString("Et meeerde...\n");
     }
-}
+}//*/

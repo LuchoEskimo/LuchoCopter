@@ -91,7 +91,15 @@
 # define    MPU9150_zg_st               5
 # define    MPU9150_fs_sel1             4
 # define    MPU9150_fs_sel0             3
-# define    MPU9150_fs_sels             0b11000
+# define    MPU9150_fs_sels             0b00011000
+
+// ACCEL_CONFIG
+# define    MPU9150_xa_st               7
+# define    MPU9150_ya_st               6
+# define    MPU9150_za_st               5
+# define    MPU9150_afs_sel1            4
+# define    MPU9150_afs_sel0            3
+# define    MPU9150_afs_sels            0b00011000
 
 // PWR_MGMT_1
 # define    MPU9150_deivce_reset        7
@@ -126,17 +134,17 @@
 // # define    MPU9150_address             0x69
 # define MPU9150_address                0x68
 
-// The current scales
-static uint8_t gyroScale;
-static uint8_t accelScale;
-
 // TODO
 // Implement all getAccel/getGyros
+// Optimize them
+// Use fixed point numbers
 
-void mpu9150_init(void);
+void mpu9150_init(uint8_t gyroFullScale, uint8_t accelFullScale);
 void mpu9150_setSleep(uint8_t sleep);
 void mpu9150_setClockSource(uint8_t clk_src);
-int16_t mpu9150_getAccelX(void);
+void mpu9150_setGyroFullScale(uint8_t scale);
+void mpu9150_setAccelFullScale(uint8_t scale);
+float mpu9150_getAccelX(void);
 int16_t mpu9150_getAccelY(void);
 int16_t mpu9150_getAccelZ(void);
 int16_t mpu9150_getGyroX(void);

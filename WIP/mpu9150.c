@@ -28,7 +28,7 @@ void mpu9150_init(uint8_t gyroFullScale, uint8_t accelFullScale) {
  * Input    1 (yes) or 0 (no)
  */
 void mpu9150_setSleep(uint8_t sleep) {
-    uint8_t tmp = i2c_readByte(MPU9150_address, MPU9150_pwr_mgmt_1);
+    const uint8_t tmp = i2c_readByte(MPU9150_address, MPU9150_pwr_mgmt_1);
     
     // Check if there's nothin to do
     if( (tmp & (1 << MPU9150_sleep)) != sleep << MPU9150_sleep ) {
@@ -50,7 +50,7 @@ void mpu9150_setSleep(uint8_t sleep) {
  *          MPU9150_ext_19_osc
  */
 void mpu9150_setClockSource(uint8_t clk_src) {
-    uint8_t tmp = i2c_readByte(MPU9150_address, MPU9150_pwr_mgmt_1);
+    const uint8_t tmp = i2c_readByte(MPU9150_address, MPU9150_pwr_mgmt_1);
 
     // Check if there is nothing to do
     if( (tmp & MPU9150_clksels) != clk_src ){
@@ -69,21 +69,30 @@ void mpu9150_setClockSource(uint8_t clk_src) {
  */
 void mpu9150_setGyroFullScale(uint8_t scale) {
     if( scale != gyroScale ) {
-        uint8_t tmp = i2c_readByte(MPU9150_address, MPU9150_gyro_config);
+        const uint8_t tmp = i2c_readByte(MPU9150_address, MPU9150_gyro_config);
         i2c_writeByte(MPU9150_address, MPU9150_gyro_config, (tmp & ~MPU9150_fs_sels) | (scale << MPU9150_fs_sel0));
         gyroScale = scale;
     }
 }
 
+/*
+ * Function mpu9150_setAccelFullScale
+ * Desc     Set the accelerometer full scale
+ *          range.
+ * Input    MPU9150_accel_2g
+ *          MPU9150_accel_4g
+ *          MPU9158_accel_8g
+ *          MPU9150_accel_16g
+ */
 void mpu9150_setAccelFullScale(uint8_t scale) {
     if( scale != accelScale ) {
-        uint8_t tmp = i2c_readByte(MPU9150_address, MPU9150_accel_config);
+        const uint8_t tmp = i2c_readByte(MPU9150_address, MPU9150_accel_config);
         i2c_writeByte(MPU9150_address, MPU9150_accel_config, (tmp & ~MPU9150_afs_sels) | (scale << MPU9150_afs_sel0));
         accelScale = scale;
     }
 }
 
-float mpu9150_getAccelX(void) {
+fixed16_10 mpu9150_getAccelX(void) {
     // The value of the high and low register
     uint8_t registers[2];
     i2c_burstRead(MPU9150_address, MPU9150_accel_xout_h, registers, 2);

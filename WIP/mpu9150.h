@@ -139,14 +139,22 @@
 // Optimize them
 // Use fixed point numbers
 
+// Fixed point format used for accel and gyro measurement
+typedef int16_t fixed16_10;
+typedef int16_t fixed16_2;
+# define fixed16_10toFloat(fixed) ((float)(fixed / 1024.0f))
+# define fixed16_2toFloat(fixed) ((float)(fixed / 4.0f))
+# define floatToFixed16_10(fpn) ((fixed16_10)(fpn * 1024.0f))
+# define floatToFixed16_2(fpn) ((fixed16_2)(fpn * 4.0f))
+
 void mpu9150_init(uint8_t gyroFullScale, uint8_t accelFullScale);
 void mpu9150_setSleep(uint8_t sleep);
 void mpu9150_setClockSource(uint8_t clk_src);
 void mpu9150_setGyroFullScale(uint8_t scale);
 void mpu9150_setAccelFullScale(uint8_t scale);
-float mpu9150_getAccelX(void);
-int16_t mpu9150_getAccelY(void);
-int16_t mpu9150_getAccelZ(void);
-int16_t mpu9150_getGyroX(void);
-int16_t mpu9150_getGyroY(void);
-int16_t mpu9150_getGyroZ(void);
+fixed16_10 mpu9150_getAccelX(void);
+fixed16_10 mpu9150_getAccelY(void);
+fixed16_10 mpu9150_getAccelZ(void);
+fixed16_2 mpu9150_getGyroX(void);
+fixed16_2 mpu9150_getGyroY(void);
+fixed16_2 mpu9150_getGyroZ(void);

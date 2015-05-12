@@ -14,17 +14,40 @@
 void init(void);
 //void mpu9150_init(void);
 
+void displayFixed10(fixed16_10 f) {
+    float a = fixed16_10toFloat(f);
+    int16_t integer = a;
+    float fractionnal = a - integer;
+    int16_t frac = (int16_t)(fractionnal * 1000.0f);
+    char ret[10];
+    sprintf(ret, "%d,%03d\n", integer, frac);
+    usart_sendString(ret);
+}
+
 int main(void) {
     init();
     mpu9150_init(MPU9150_gyro_250, MPU9150_accel_2g);
 
-    char ret[90];
+
+    char ret[30];
     float ax;
     int16_t fax;
     uint16_t debut, temps;
 
+    displayFixed10(floatToFixed16_10(10.159f));
+
+    /*
+    for(int16_t i = -20; i <= 20; i += 1) {
+        fixed16_2 value = (int16_t) i << 1;
+        debut = eon_millis();
+        float fp = fixed16_2toFloat(value);
+        temps = eon_millis() - debut;
+        sprintf(ret, "%d.%d\t%d\n", (int16_t)fp, ~(int16_t)((fp - (int16_t)fp) * 4.0f) + 1, temps);
+        usart_sendString(ret);
+    } //*/
+
     for(;;) {
-        ///*
+        /*
         debut = eon_millis();
         ax = mpu9150_getAccelX();
         temps = eon_millis() - debut;

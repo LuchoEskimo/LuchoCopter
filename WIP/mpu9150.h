@@ -1,3 +1,6 @@
+# ifndef MPU9150_H
+# define MPU9150_H
+
 # include "../lib/i2c.h"
 
 // Definition of all the intenal registers of the mpu9150
@@ -152,9 +155,15 @@ void mpu9150_setSleep(uint8_t sleep);
 void mpu9150_setClockSource(uint8_t clk_src);
 void mpu9150_setGyroFullScale(uint8_t scale);
 void mpu9150_setAccelFullScale(uint8_t scale);
+
 fixed16_10 mpu9150_getAccelX(void);
 fixed16_10 mpu9150_getAccelY(void);
 fixed16_10 mpu9150_getAccelZ(void);
+void mpu9150_getAccelXYZ(fixed16_10 *out);
+
 fixed16_2 mpu9150_getGyroX(void);
 fixed16_2 mpu9150_getGyroY(void);
 fixed16_2 mpu9150_getGyroZ(void);
+
+
+# endif

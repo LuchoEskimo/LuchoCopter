@@ -92,18 +92,69 @@ void mpu9150_setAccelFullScale(uint8_t scale) {
     }
 }
 
+/*
+ * Function mpu9150_getAccelX
+ * Desc     Return the acceleration of
+ *          the X axis, in g and in format
+ *          fixed<16_10>
+ * Ouptut   fixed16_10: the value of the acceleration
+ */
 fixed16_10 mpu9150_getAccelX(void) {
     // The value of the high and low register
     uint8_t registers[2];
     i2c_burstRead(MPU9150_address, MPU9150_accel_xout_h, registers, 2);
 
     // The whole acceleration, in bits not converted
-    int16_t value = (int16_t)(registers[0] << 8 | registers[1]);
+    int16_t accelBits = (int16_t)(registers[0] << 8) | registers[1];
     
-    // The precision, 2g, 4g, 8g, or 16g
-    int8_t precision = 2 << accelScale;
-    float coef = (float)precision * 0.000030518f;
-    float ret = coef * value;
+    return (fixed16_10)(((int32_t)(accelBits) << (6 + accelScale)) >> 10);
+}
 
-    return ret;
+/* 
+ * Function mpu9150_getAccelY
+ * Desc     Returns the accelration following
+ *          the Y axis, in fixed<16-10>
+ * Output   fixed16_10: the Y acceleration
+ */
+fixed16_10 mpu9150_getAccelY(void) {
+    uint8_t regs[2];
+    i2c_burstRead(MPU9150_address, MPU9150_accel_yout_h, regs, 2);
+
+    int16_t accelBits = (int16_t)(regs[0] << 8) | regs[1];
+
+    return (fixed16_10)(((int32_t)(accelBits) << (6 + accelScale)) >> 10);
+}
+
+/*
+ * Function mpu9150_getAccelZ
+ * Desc     Returns the acceleration following
+ *          the Z axis, in fixed<16-10>
+ * Output   fixed16_10: the Z acceleration
+ */
+fixed16_10 mpu9150_getAccelZ(void) {
+    uint8_t regs[2];
+    i2c_burstRead(MPU9150_address, MPU9150_accel_zout_h, regs, 2);
+
+    int16_t accelBits = (int16_t)(regs[0] << 8) | regs[1];
+
+    return (fixed16_10)(((int32_t)(accelBits) << (6 + accelScale)) >> 10);
+}
+
+/*
+ * Function mpu9150_getAccelXYZ
+ * Desc     Returns the measured acceleration
+ *          following the 3 axis, in the given
+ *          input array
+ * Input    fixed16_10*: the array to write to
+ * Output   Nothin
+ */
+void mpu9150_getAccelXYZ(fixed16_10 *out) {
+    uint8_t regs[6];
+    i2c_burstRead(MPU9150_address, MPU9150_accel_xout_h, regs, 6);
+
+    int16_t accelBits;
+    for( uint8_t i = 0; i < 3; ++i) {
+        accelBits = (int16_t)(regs[i<<1] << 8) | regs[(i<<1)+1];
+        out[i] = (fixed16_10)(((int32_t)(accelBits) << (6+accelScale)) >> 10);
+    }
 }

@@ -2,6 +2,7 @@
 # define MPU9150_H
 
 # include "../lib/i2c.h"
+# include "fixed.h"
 
 // Definition of all the intenal registers of the mpu9150
 # define    MPU9150_self_test_x         0x0D
@@ -136,19 +137,6 @@
 // set
 // # define    MPU9150_address             0x69
 # define MPU9150_address                0x68
-
-// TODO
-// Implement all getAccel/getGyros
-// Optimize them
-// Use fixed point numbers
-
-// Fixed point format used for accel and gyro measurement
-typedef int16_t fixed16_10;
-typedef int16_t fixed16_2;
-# define fixed16_10toFloat(fixed) ((float)(fixed / 1024.0f))
-# define fixed16_2toFloat(fixed) ((float)(fixed / 4.0f))
-# define floatToFixed16_10(fpn) ((fixed16_10)(fpn * 1024.0f))
-# define floatToFixed16_2(fpn) ((fixed16_2)(fpn * 4.0f))
 
 void mpu9150_init(uint8_t gyroFullScale, uint8_t accelFullScale);
 void mpu9150_setSleep(uint8_t sleep);

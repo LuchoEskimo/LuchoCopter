@@ -1,6 +1,6 @@
 NAME = main
 WIP = mpu9150
-LIB = ../lib/* $(WIP).*
+LIB = ../lib/* $(WIP).* fixed.*
 #LIB = motors.c usart.c eon.c i2c.c
 PROGRAMMER = usbasp-clone
 #PROGRAMMER = arduino
@@ -21,7 +21,7 @@ all: $(NAME).hex
 $(NAME).hex: $(NAME).o
 	avr-objcopy -O ihex $(NAME).o $(NAME).hex
 
-$(NAME).o: $(NAME).c $(WIP).h $(WIP).c
+$(NAME).o: $(NAME).c $(WIP).h $(WIP).c fixed.*
 	avr-gcc $(OPTIONS_GCC) $(NAME).c $(LIB) -o $(NAME).o
 
 .PHONY : clean

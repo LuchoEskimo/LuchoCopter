@@ -4,6 +4,10 @@
 static uint8_t gyroScale = 0xFF;
 static uint8_t accelScale = 0xFF;
 
+// The zero values for the accel / gyro
+static int8_t gyro_xzero = -65;
+static int8_t gyro_yzero = 0;
+static int8_t gyro_zzero = 5;
 
 /*
  * Function mpu9150_init
@@ -178,69 +182,74 @@ void mpu9150_getAccelXYZ(fixed16_10 *out) {
  * Function mpu9150_getGyroX
  * Desc     Return the angular rate around the
  *          X axis (the roll) in deg/s
- * Output   fixed16_2: the angular rate
+ * Output   fixed16_4: the angular rate
  */
-fixed16_2 mpu9150_getGyroX(void) {
+fixed16_4 mpu9150_getGyroX(void) {
     // Read the two registers
     uint8_t regs[2];
     i2c_burstRead(MPU9150_address, MPU9150_gyro_xout_h, regs, 2);
     
     // The raw accelartion, in 2¹⁵ / full scale LSB / °⋅s⁻¹
-    int16_t ang_rate = (int16_t)(regs[0] << 8) | regs[1];
+    int16_t ang_rate = ((int16_t)(regs[0] << 8) | regs[1]) - gyro_xzero;
 
-    return (fixed16_2)((((int32_t)ang_rate) * (250 << gyroScale)) >> 13);
+    return (fixed16_4)((((int32_t)ang_rate) * (250 << gyroScale)) >> 11);
 }
 
 /*
  * Function mpu9150_getGyroY
  * Desc     Return the angular rate around the
  *          Y axis (the roll) in deg/s
- * Output   fixed16_2: the angular rate
+ * Output   fixed16_4: the angular rate
  */
-fixed16_2 mpu9150_getGyroY(void) {
+fixed16_4 mpu9150_getGyroY(void) {
     // Read the two registers
     uint8_t regs[2];
     i2c_burstRead(MPU9150_address, MPU9150_gyro_yout_h, regs, 2);
     
     // The raw accelartion, in 2¹⁵ / full scale LSB / °⋅s⁻¹
-    int16_t ang_rate = (int16_t)(regs[0] << 8) | regs[1];
+    int16_t ang_rate = ((int16_t)(regs[0] << 8) | regs[1]) - gyro_yzero;
 
-    return (fixed16_2)((((int32_t)ang_rate) * (250 << gyroScale)) >> 13);
+    return (fixed16_4)((((int32_t)ang_rate) * (250 << gyroScale)) >> 11);
 }
 
 /*
  * Function mpu9150_getGyroZ
  * Desc     Return the angular rate around the
  *          Z axis (the roll) in deg/s
- * Output   fixed16_2: the angular rate
+ * Output   fixed16_4: the angular rate
  */
-fixed16_2 mpu9150_getGyroZ(void) {
+fixed16_4 mpu9150_getGyroZ(void) {
     // Read the two registers
     uint8_t regs[2];
     i2c_burstRead(MPU9150_address, MPU9150_gyro_zout_h, regs, 2);
     
     // The raw accelartion, in 2¹⁵ / full scale LSB / °⋅s⁻¹
-    int16_t ang_rate = (int16_t)(regs[0] << 8) | regs[1];
+    int16_t ang_rate = ((int16_t)(regs[0] << 8) | regs[1]) - gyro_zzero;
 
-    return (fixed16_2)((((int32_t)ang_rate) * (250 << gyroScale)) >> 13);
+    return (fixed16_4)((((int32_t)ang_rate) * (250 << gyroScale)) >> 11);
 }
 
 /*
  * Function mpu9150_getGyroXYZ
  * Desc     Returns the three components
  *          of the angular velocity of the
- *          IMU, mesured in deg/s in fixed16_2
+ *          IMU, mesured in deg/s in fixed16_4
  *          format.
- * Input:   fixed16_2 *out: the array, of at least
+ * Input:   fixed16_4 *out: the array, of at least
  *          a length of 3, to write in
  */
-void mpu9150_getGyroXYZ(fixed16_2 *out) {
+void mpu9150_getGyroXYZ(fixed16_4 *out) {
     uint8_t regs[6];
     i2c_burstRead(MPU9150_address, MPU9150_gyro_xout_h, regs, 6);
 
     int16_t ang_rate;
-    for( uint8_t i = 0; i < 3; ++i ) {
-        ang_rate = (int16_t)(regs[i<<1] << 8) | regs[(i<<1)|1];
-        out[i] = (fixed16_2)((((int32_t)ang_rate) * (250 << gyroScale)) >> 13);
-    }
+
+    ang_rate = ((int16_t)(regs[0] << 8) | regs[1]) - gyro_xzero;
+    out[0] = (fixed16_4)((((int32_t)ang_rate) * (250 << gyroScale)) >> 11);
+
+    ang_rate = ((int16_t)(regs[2] << 8) | regs[3]) - gyro_yzero;
+    out[1] = (fixed16_4)((((int32_t)ang_rate) * (250 << gyroScale)) >> 11);
+
+    ang_rate = ((int16_t)(regs[4] << 8) | regs[5]) - gyro_zzero;
+    out[2] = (fixed16_4)((((int32_t)ang_rate) * (250 << gyroScale)) >> 11);
 }

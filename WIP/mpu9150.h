@@ -157,6 +157,9 @@
 // # define    MPU9150_address             0x69
 # define MPU9150_address                0x68
 
+// TODO
+// calibrate(Gyro|Accel)
+
 void mpu9150_init(uint8_t gyroFullScale, uint8_t accelFullScale);
 
 void mpu9150_setSleep(uint8_t sleep);
@@ -170,10 +173,10 @@ fixed16_10 mpu9150_getAccelY(void);
 fixed16_10 mpu9150_getAccelZ(void);
 void mpu9150_getAccelXYZ(fixed16_10 *out);
 
-fixed16_2 mpu9150_getGyroX(void);
-fixed16_2 mpu9150_getGyroY(void);
-fixed16_2 mpu9150_getGyroZ(void);
-void mpu9150_getGyroXYZ(fixed16_2 *out);
+fixed16_4 mpu9150_getGyroX(void);
+fixed16_4 mpu9150_getGyroY(void);
+fixed16_4 mpu9150_getGyroZ(void);
+void mpu9150_getGyroXYZ(fixed16_4 *out);
 
 
 # endif

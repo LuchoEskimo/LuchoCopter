@@ -89,6 +89,16 @@
 # define    MPU9150_who_am_i            0x75
 
 // Position of different bits in their registers
+// CONFIG
+# define    MPU9150_ext_sync_set2       5
+# define    MPU9150_ext_sync_set1       4
+# define    MPU9150_ext_sync_set0       3
+# define    MPU9150_ext_sync_sets       0b00111000
+# define    MPU9150_dlpf_cfg2           2
+# define    MPU9150_dlpf_cfg1           1
+# define    MPU9150_dlpf_cfg0           0
+# define    MPU9150_dlpf_cfgs           0b00000111
+
 // GYRO_CONFIG
 # define    MPU9150_xg_st               7
 # define    MPU9150_yg_st               6
@@ -113,7 +123,16 @@
 # define    MPU9150_clksel2             2
 # define    MPU9150_clksel1             1
 # define    MPU9150_clksel0             0
-# define    MPU9150_clksels             0b111
+# define    MPU9150_clksels             0b00000111
+
+// Digital Low-Pass Filter configs
+# define    MPU9150_dlpf_null           0
+# define    MPU9150_dlpf_very_low       1
+# define    MPU9150_dlpf_low            2
+# define    MPU9150_dlpf_middle_low     3
+# define    MPU9150_dlpf_middle_high    4
+# define    MPU9150_dlpf_high           5
+# define    MPU9150_dlpf_very_high      6
 
 // Different clock sources
 # define    MPU9150_internal_osc        0
@@ -139,8 +158,10 @@
 # define MPU9150_address                0x68
 
 void mpu9150_init(uint8_t gyroFullScale, uint8_t accelFullScale);
+
 void mpu9150_setSleep(uint8_t sleep);
 void mpu9150_setClockSource(uint8_t clk_src);
+void mpu9150_setDLPF(uint8_t cfg);
 void mpu9150_setGyroFullScale(uint8_t scale);
 void mpu9150_setAccelFullScale(uint8_t scale);
 
@@ -152,6 +173,7 @@ void mpu9150_getAccelXYZ(fixed16_10 *out);
 fixed16_2 mpu9150_getGyroX(void);
 fixed16_2 mpu9150_getGyroY(void);
 fixed16_2 mpu9150_getGyroZ(void);
+void mpu9150_getGyroXYZ(fixed16_2 *out);
 
 
 # endif

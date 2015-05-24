@@ -32,7 +32,22 @@ void mpu9150_setSleep(uint8_t sleep) {
     
     // Check if there's nothin to do
     if( (tmp & (1 << MPU9150_sleep)) != sleep << MPU9150_sleep ) {
-        i2c_writeByte(MPU9150_address, MPU9150_pwr_mgmt_1, tmp ^ 1 << MPU9150_sleep);
+        i2c_writeByte(MPU9150_address, MPU9150_pwr_mgmt_1, tmp ^ (1 << MPU9150_sleep));
+    }
+}
+
+/*
+ * Function mpu9150_setDLPF
+ * Desc     Sets the frequency of the internal
+ *          digital low pass filter
+ * Input    uint8_t: MPU9150_dlpf_*
+ */
+void mpu9150_setDLPF(uint8_t cfg) {
+    const uint8_t tmp = i2c_readByte(MPU9150_address, MPU9150_config);
+
+    // Check if the config is diffferent
+    if( (tmp & MPU9150_dlpf_cfgs) != (cfg << MPU9150_dlpf_cfg0) ) {
+        i2c_writeByte(MPU9150_address, MPU9150_config, (tmp & ~MPU9150_dlpf_cfgs) | cfg);
     }
 }
 
@@ -95,7 +110,7 @@ void mpu9150_setAccelFullScale(uint8_t scale) {
 /*
  * Function mpu9150_getAccelX
  * Desc     Return the acceleration of
- *          the X axis, in g and in format
+ *          the X axis, in mg and in format
  *          fixed<16_10>
  * Ouptut   fixed16_10: the value of the acceleration
  */
@@ -113,7 +128,7 @@ fixed16_10 mpu9150_getAccelX(void) {
 /* 
  * Function mpu9150_getAccelY
  * Desc     Returns the accelration following
- *          the Y axis, in fixed<16-10>
+ *          the Y axis, in fixed<16-10> in mg
  * Output   fixed16_10: the Y acceleration
  */
 fixed16_10 mpu9150_getAccelY(void) {
@@ -128,7 +143,7 @@ fixed16_10 mpu9150_getAccelY(void) {
 /*
  * Function mpu9150_getAccelZ
  * Desc     Returns the acceleration following
- *          the Z axis, in fixed<16-10>
+ *          the Z axis, in fixed<16-10> in mg
  * Output   fixed16_10: the Z acceleration
  */
 fixed16_10 mpu9150_getAccelZ(void) {
@@ -143,9 +158,9 @@ fixed16_10 mpu9150_getAccelZ(void) {
 /*
  * Function mpu9150_getAccelXYZ
  * Desc     Returns the measured acceleration
- *          following the 3 axis, in the given
+ *          following the 3 axis, in mg, in the given
  *          input array
- * Input    fixed16_10*: the array to write to
+ * Input    fixed16_10: the array to write to
  * Output   Nothin
  */
 void mpu9150_getAccelXYZ(fixed16_10 *out) {
@@ -154,7 +169,78 @@ void mpu9150_getAccelXYZ(fixed16_10 *out) {
 
     int16_t accelBits;
     for( uint8_t i = 0; i < 3; ++i) {
-        accelBits = (int16_t)(regs[i<<1] << 8) | regs[(i<<1)+1];
+        accelBits = (int16_t)(regs[i<<1] << 8) | regs[(i<<1)|1];
         out[i] = (fixed16_10)(((int32_t)(accelBits) << (6+accelScale)) >> 10);
+    }
+}
+
+/*
+ * Function mpu9150_getGyroX
+ * Desc     Return the angular rate around the
+ *          X axis (the roll) in deg/s
+ * Output   fixed16_2: the angular rate
+ */
+fixed16_2 mpu9150_getGyroX(void) {
+    // Read the two registers
+    uint8_t regs[2];
+    i2c_burstRead(MPU9150_address, MPU9150_gyro_xout_h, regs, 2);
+    
+    // The raw accelartion, in 2¹⁵ / full scale LSB / °⋅s⁻¹
+    int16_t ang_rate = (int16_t)(regs[0] << 8) | regs[1];
+
+    return (fixed16_2)((((int32_t)ang_rate) * (250 << gyroScale)) >> 13);
+}
+
+/*
+ * Function mpu9150_getGyroY
+ * Desc     Return the angular rate around the
+ *          Y axis (the roll) in deg/s
+ * Output   fixed16_2: the angular rate
+ */
+fixed16_2 mpu9150_getGyroY(void) {
+    // Read the two registers
+    uint8_t regs[2];
+    i2c_burstRead(MPU9150_address, MPU9150_gyro_yout_h, regs, 2);
+    
+    // The raw accelartion, in 2¹⁵ / full scale LSB / °⋅s⁻¹
+    int16_t ang_rate = (int16_t)(regs[0] << 8) | regs[1];
+
+    return (fixed16_2)((((int32_t)ang_rate) * (250 << gyroScale)) >> 13);
+}
+
+/*
+ * Function mpu9150_getGyroZ
+ * Desc     Return the angular rate around the
+ *          Z axis (the roll) in deg/s
+ * Output   fixed16_2: the angular rate
+ */
+fixed16_2 mpu9150_getGyroZ(void) {
+    // Read the two registers
+    uint8_t regs[2];
+    i2c_burstRead(MPU9150_address, MPU9150_gyro_zout_h, regs, 2);
+    
+    // The raw accelartion, in 2¹⁵ / full scale LSB / °⋅s⁻¹
+    int16_t ang_rate = (int16_t)(regs[0] << 8) | regs[1];
+
+    return (fixed16_2)((((int32_t)ang_rate) * (250 << gyroScale)) >> 13);
+}
+
+/*
+ * Function mpu9150_getGyroXYZ
+ * Desc     Returns the three components
+ *          of the angular velocity of the
+ *          IMU, mesured in deg/s in fixed16_2
+ *          format.
+ * Input:   fixed16_2 *out: the array, of at least
+ *          a length of 3, to write in
+ */
+void mpu9150_getGyroXYZ(fixed16_2 *out) {
+    uint8_t regs[6];
+    i2c_burstRead(MPU9150_address, MPU9150_gyro_xout_h, regs, 6);
+
+    int16_t ang_rate;
+    for( uint8_t i = 0; i < 3; ++i ) {
+        ang_rate = (int16_t)(regs[i<<1] << 8) | regs[(i<<1)|1];
+        out[i] = (fixed16_2)((((int32_t)ang_rate) * (250 << gyroScale)) >> 13);
     }
 }

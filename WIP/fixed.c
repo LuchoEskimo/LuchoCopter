@@ -70,3 +70,55 @@ fixed16_6 fx_atan2(fixed16_10 b, fixed16_10 a) {
 
     return z;
 }
+
+fixed16_10 fx_invsqrt(fixed32_10 x) {
+    // First find the 'seed` of the algorithm
+    // It's an approximation of sqrt(x) in fixed32_10,
+    // for use with the Newton method
+
+   fixed32_10 y; // the estimated invsqrt
+   fixed32_10 y3_2; // 3y / 2
+   fixed32_10 xy; // x * y
+   fixed32_10 yy_2; // y² / 2
+    
+   // If x <= 0, then stop
+    if( x < 1 ) {
+        return -1;
+    }
+   // x >= 3, invsqrt(x) ~=  0.25
+    else if( x >= 3072 ) {
+        y = 256; 
+    }
+    // x >= 0.3, invsqrt(x) ~= 0.8
+    else if( x >= 307 ) {
+        y = 819;
+    }
+    // x >= 0.05, invsqrt(x) ~= 2.7
+    else if( x >= 51 ) {
+        y = 2765;
+    }
+    // x >= 0.005, invsqrt(x) ~= 7
+    else if( x >= 5 ) {
+        y = 7168;
+    }
+    // x > 1 /1024, invsqrt(x) ~= 20
+    else if( x > 1 ) {
+        y = 20480;
+    }
+    // Avoid overflow: invsqrt(1/1024) = 32, 32 = 2¹⁶ > fixed16_10 limit
+    // We approximate invsqrt(1 / 1024) ~= invsqrt(1/1024) - 1, which leads to
+    // an error of 3⋅10⁻⁵...
+    else {
+        return 32767;
+    }
+
+    for(uint8_t i = 0; i < 6; ++i) {
+        y3_2 = 1536 * y;
+        xy = mul32_10(x, y);
+        yy_2 = mul16_10(y, y) >> 1;
+        y = y3_2 - mul16_10(xy, yy_2);
+    }
+
+    return (fixed16_10)y;
+}
+

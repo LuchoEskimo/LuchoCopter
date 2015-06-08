@@ -55,5 +55,6 @@ typedef int16_t fixed16_2;
 # define div16_2(n1, n2) ((int16_t)((((int32_t)(n1)) << 2) / (n2)))
 
 fixed16_6 fx_atan2(fixed16_10 x, fixed16_10 y);
+fixed16_10 fx_invsqrt(fixed32_10 x);
 
 # endif

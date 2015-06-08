@@ -168,15 +168,15 @@ void mpu9150_setDLPF(uint8_t cfg);
 void mpu9150_setGyroFullScale(uint8_t scale);
 void mpu9150_setAccelFullScale(uint8_t scale);
 
-fixed16_10 mpu9150_getAccelX(void);
-fixed16_10 mpu9150_getAccelY(void);
-fixed16_10 mpu9150_getAccelZ(void);
-void mpu9150_getAccelXYZ(fixed16_10 *out);
+float  mpu9150_getAccelX(void);
+float  mpu9150_getAccelY(void);
+float  mpu9150_getAccelZ(void);
+void mpu9150_getAccelXYZ(float  *out);
 
-fixed16_4 mpu9150_getGyroX(void);
-fixed16_4 mpu9150_getGyroY(void);
-fixed16_4 mpu9150_getGyroZ(void);
-void mpu9150_getGyroXYZ(fixed16_4 *out);
+float  mpu9150_getGyroX(void);
+float  mpu9150_getGyroY(void);
+float  mpu9150_getGyroZ(void);
+void mpu9150_getGyroXYZ(float  *out);
 
 
 # endif

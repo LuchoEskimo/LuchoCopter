@@ -1,0 +1,266 @@
+
+AVRA   Ver. 1.3.0 beeep.s Sun Jul 19 16:04:15 2015
+
+
+         ; Includes the macros definitions
+          .list
+         
+          .def    WR1 = r16               ; The working registers
+          .def    WR2 = r17
+          .def    WR3 = r18
+         
+          .def    Arg1 = r19              ; Argument registers
+          .def    Arg2 = r20
+         
+          .def    T1 = r13                ; The 24 bits value used to
+          .def    T2 = r14                ; hold the number of milliseconds
+          .def    T3 = r15                ; Since the µC's initialization
+         
+          .equ    pin_fr = PD5            ; The motors pins
+          .equ    pin_br = PD3
+          .equ    pin_bl = PD6
+          .equ    pin_fl = PB3
+         
+          .equ    min_spd = 110           ; The min/max value of the counters. Used for
+          .equ    max_spd = 245           ; calibration purpose only
+          .equ    zero_spd = 125          ; The min/max value used for min/max speed
+          .equ    full_spd = 225
+         
+          .equ    tim_fr = OCR0B          ; The motors timers
+          .equ    tim_br = OCR2B
+          .equ    tim_bl = OCR0A
+          .equ    tim_fl = OCR2A
+         
+          .equ    BaudRate = 38400        ; The baudrate in baud
+          .equ    dt = 10                 ; The length of a loop in ms
+         
+         ;===================;
+         ;   DATA SEGMENT    ;
+         ;===================;
+         
+          .dseg
+          .org    SRAM_START
+         
+         ;===================;
+         ;  PROGRAM SEGMENT  ;
+         ;===================;
+         
+          .cseg
+         ; Interrupt vectors
+          .org    0x0000
+C:000000 c047          RJMP    Start               ; The reset vector, the "main" program
+         
+          .org    OC1Aaddr
+C:000016 940c 00a4     JMP     Timer1Aisr          ; The int vector called every ms by Timer 1 A
+         
+         ; Move the "normal" section: not the int vectors one
+          .org INT_VECTORS_SIZE   
+         
+         ; Data stored in the progmem
+         
+          HelloWorld:
+              .DB "hello, world", 10, 0
+C:000034 68656C6C6F2C20776F726C640A00
+         
+          SetupFinished:
+              .DB "Setup done", 10, 0
+C:00003B 536574757020646F6E650A00
+         
+          DataWaiting:
+              .DB "Data waiting", 10, 0
+C:000041 446174612077616974696E670A00
+         
+         ;-------------------;
+         ;   Initialization  ;
+         ;-------------------;
+          Start:
+             ; Stack Pointer setup
+C:000048 e008          LDI     WR1, HIGH(RAMEND)   ; Setup the Stack Pointer
+C:000049 bf0e          OUT     SPH, WR1            ; at the top of the ram
+C:00004a ef0f          LDI     WR1, LOW(RAMEND)    ; because it goes downward
+C:00004b bf0d          OUT     SPL, WR1
+         
+             ; USART setup (8 even 2)
+C:00004c e108          LDI     WR1, (1<<RXEN0)+(1<<TXEN0)
+C:00004d e21e          LDI     WR2, (1<<UPM01)+(1<<USBS0)+(1<<UCSZ00)+(1<<UCSZ01)
+         
+C:00004e 9300 00c1     STS     UCSR0B, WR1         ; OCR0B: reception and transmition
+C:000050 9310 00c2     STS     UCSR0C, WR2         ; OCR0C: Even parity, 2 stop bits
+         
+C:000052 e000          LDI     WR1, HIGH(1000000 / BaudRate - 1)
+C:000053 e119          LDI     WR2, LOW(1000000 / BaudRate - 1)
+         
+C:000054 9300 00c5     STS     UBRR0H, WR1         ; Set the baud rate, with the formula
+C:000056 9310 00c4     STS     UBRR0L, WR2         ; UBRR = F_CPU / 16 / Baudrate - 1 (F_CPU = 16 MHz)
+         
+             ; Timer1A (milliseconds) setup
+C:000058 24dd          CLR     T1                  ; 0 ms spends since startup
+C:000059 24ee          CLR     T2
+C:00005a 24ff          CLR     T3
+         
+C:00005b e009          LDI     WR1, (1 << WGM12) + (1 << CS10)
+C:00005c 9300 0081     STS     TCCR1B, WR1         ; TCCR1A/1C must be 0, its initial value 
+                                         ; Set TCCR1B in order to have:
+                                         ; CTC Mode, TOP = OCR1A, no prescaling
+C:00005e e400          LDI     WR1, (1 << COM1A0)
+C:00005f 9300 0080     STS     TCCR1A, WR1
+         
+C:000061 e30e          LDI     WR1, HIGH(15999)    ; Must wait 16000 clock cycles (so 1 kHz)
+C:000062 9300 0089     STS     OCR1AH, WR1         ; From 0 to 16000 -> 16001 cc
+C:000064 e70f          LDI     WR1, LOW(15999)     ; So load OCR1A with 15999
+C:000065 9300 0088     STS     OCR1AL, WR1
+         
+C:000067 e002          LDI     WR1, 1 << OCIE1A    ; Enable Output Compare A match interrupt
+C:000068 9300 006f     STS     TIMSK1, WR1
+         
+             ; Timer0 and Timer2 settings (motors)
+C:00006a e608          LDI     WR1, (1<<pin_fr)+(1<<pin_br)+(1<<pin_bl)
+C:00006b e018          LDI     WR2, (1<<pin_fl)
+C:00006c b90a          OUT     DDRD, WR1           ; Set the motors pin dir as output
+C:00006d b914          OUT     DDRB, WR2
+         
+C:00006e ea01          LDI     WR1, (1<<WGM00)+(1<<COM0A1)+(1<<COM0B1)
+C:00006f e013          LDI     WR2, (1<<CS01)+(1<<CS00)
+C:000070 e024          LDI     WR3, (1<<CS22)
+         
+C:000071 9300 0024     STS     TCCR0A, WR1         ; PWM, phase correct, top = 0xFF
+C:000073 9300 00b0     STS     TCCR2A, WR1         
+C:000075 9310 0025     STS     TCCR0B, WR2         ; F_pwm = F_CPU / 64 ~= 488 Hz
+C:000077 9320 00b1     STS     TCCR2B, WR3
+         
+C:000079 e104          LDI     WR1, 20
+C:00007a 9300 0028     STS     tim_fr, WR1
+C:00007c 9300 00b4     STS     tim_br, WR1
+C:00007e 9300 0027     STS     tim_bl, WR1
+C:000080 9300 00b3     STS     tim_fl, WR1
+         
+             ; I/O settings
+C:000082 ef0f          SER     WR1
+C:000083 b90a          OUT     DDRD, WR1
+C:000084 b90b          OUT     PORTD, WR1
+C:000085 b904          OUT     DDRB, WR1
+C:000086 b905          OUT     PORTB, WR1
+         
+             ; Enable interrupts
+C:000087 9478          SEI
+         
+             ; Setup finished
+C:000088 e0f0          LDI     ZH, HIGH(SetupFinished*2)
+C:000089 e7e6          LDI     ZL, LOW(SetupFinished*2)
+C:00008a d02e          RCALL   UARTSendString
+         
+         ;------------------;
+         ;   Main  Loop     ;
+         ;------------------;
+          Loop:
+C:00008b 94f8          CLI                         ; Reset the counter
+C:00008c 24dd          CLR     T1
+C:00008d 24ee          CLR     T2
+C:00008e 24ff          CLR     T3
+C:00008f 9478          SEI
+         
+C:000090 9100 00c0     LDS     WR1, UCSR0A
+C:000092 fd07          SBRC    WR1, RXC0           ; Skip next if RXC0 = 0
+C:000093 c00a          RJMP    ReceivedData
+         
+          BackToReality:
+C:000094 e00a          LDI     WR1, BYTE1(dt)      ; Load the period
+C:000095 e010          LDI     WR2, BYTE2(dt)
+C:000096 e020          LDI     WR3, BYTE3(dt)
+         
+          Wait:                           ; Wait until a period is passed
+         
+C:000097 94f8          CLI                         ; Compare T1 (elapsed time in ms) with
+C:000098 16d0          CP      T1, WR1             ; WR[1|2|3] (the loop date)
+C:000099 06e1          CPC     T2, WR2
+C:00009a 06f2          CPC     T3, WR3
+C:00009b 9478          SEI
+         
+C:00009c f3d0          BRLO    Wait                ; If T1 >= dt, then the delay is passed
+         
+C:00009d cfed          RJMP    Loop
+         
+          ReceivedData:
+C:00009e 9100 00c6     LDS     WR1, UDR0
+         
+C:0000a0 e0f0          LDI     ZH, HIGH(HelloWorld*2)
+C:0000a1 e6e8          LDI     ZL, LOW(HelloWorld*2)
+C:0000a2 d016          RCALL   UARTSendString
+         
+C:0000a3 cff0          RJMP    BackToReality
+         
+         ;-------------------;
+         ;     Ms counter    ;
+         ;-------------------;
+          Timer1Aisr:
+C:0000a4 930f          PUSH    WR1                 ; Must save the working register and the
+C:0000a5 b70f          IN      WR1, SREG           ; Status register on the stack before
+C:0000a6 930f          PUSH    WR1                 ; using them
+         
+C:0000a7 94d3          INC     T1                  ; Increment the counter, and continue
+C:0000a8 f419           BRNE    Timer1AisrEnd      ; if an overflow appends.
+C:0000a9 94e3          INC     T2                  ; Else, just go to the RETI instruction
+C:0000aa f409           BRNE    Timer1AisrEnd
+C:0000ab 94f3          INC     T3
+             
+          Timer1AisrEnd:                  ; Now, T1 = T1 + 1, retrieve the value of
+C:0000ac 910f          POP     WR1                 ; WR1 and SREG from the stack
+C:0000ad bf0f          OUT     SREG, WR1
+C:0000ae 910f          POP     WR1
+         
+C:0000af 9518          RETI
+         
+         ;------------------;
+         ;    UART Send     ;
+         ; Arg1: character  ;
+         ;------------------;
+          UARTSend:
+C:0000b0 930f          PUSH    WR1                     ; Save WR1 on the stack
+         
+C:0000b1 9100 00c0     LDS     WR1, UCSR0A             ; Load the Usart status reg A on WR1
+C:0000b3 fb05          BST     WR1, UDRE0              ; move Usart data reg empty bit in T bit of SREG
+C:0000b4 f7e6          BRTC    PC - 3                  ; Loop until data reg empty (return 3 lines upward)
+         
+C:0000b5 9330 00c6     STS     UDR0, Arg1              ; Send the current byte
+         
+C:0000b7 910f          POP     WR1
+         
+C:0000b8 9508          RET
+         
+         ;---------------------------;
+         ;      UART send string     ;
+         ; Z reg must contain the    ;
+         ; address of the array to   ;
+         ; send through serial line  ;
+         ;---------------------------;
+          UARTSendString:
+C:0000b9 930f          PUSH    WR1             ; Save working regs on the stack
+C:0000ba 931f          PUSH    WR2
+         
+          UARTSendStringReadArray:    ; Loop which reads each character of the array
+C:0000bb 9105          LPM     WR1, Z+         ; Load each char, and move the pointer to the next
+C:0000bc 2300          TST     WR1             ; Test if end of array reached
+C:0000bd f039          BREQ    UARTSendStringEnd
+         
+C:0000be 9110 00c0     LDS     WR2, UCSR0A     ; Load Usart status reg 1 on WR2
+C:0000c0 fb15          BST     WR2, UDRE0      ; Move UDRE0 bit in SREG T bit
+C:0000c1 f7e6          BRTC    PC - 3          ; Loop until UDRE0 = 1, ie buffer free
+         
+C:0000c2 9300 00c6     STS     UDR0, WR1       ; Send the current character
+         
+C:0000c4 cff6          RJMP    UARTSendStringReadArray
+         
+          UARTSendStringEnd:
+         
+C:0000c5 911f          POP     WR2
+C:0000c6 910f          POP     WR1
+         
+C:0000c7 9508          RET
+
+
+Segment usage:
+   Code      :       151 words (302 bytes)
+   Data      :         0 bytes
+   EEPROM    :         0 bytes
+
+Assembly completed with no errors.

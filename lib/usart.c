@@ -159,8 +159,8 @@ uint8_t usart_dataAvailable(void) {
  * 			UART0_RX_vect ISR must be implemented.
  */
 void usart_enableInterrupt(void) {
-	sei();
 	UCSR0B |= 1 << RXCIE0;
+	sei();
 }
 
 void usart_handleError(int8_t* error, int8_t code) {
